@@ -1,0 +1,56 @@
+# ==========================================
+# 1. Archivos Temporales y Compilación (Gradle/Java)
+# ==========================================
+.gradle/
+**/build/
+**/bin/
+**/dist/
+**/out/
+*.class
+*.jar
+*.war
+*.ear
+hs_err_pid*
+.attach_pid*
+
+# ==========================================
+# 2. Configuración de IDEs (IntelliJ / Eclipse / NetBeans)
+# ==========================================
+.idea/
+**/.idea/
+*.iml
+*.ipr
+*.iws
+.classpath
+.project
+.settings/
+.metadata/
+.externalToolBuilders/
+*.launch
+nbproject/
+**/nbproject/
+
+# ==========================================
+# 3. Archivos del Sistema Operativo
+# ==========================================
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ==========================================
+# 4. Exclusiones Específicas del Proyecto LibGDX
+# ==========================================
+# Archivos de configuración local y logs
+local.properties
+*.log
+*.tmp
+*.bak
+*.swp
+
+# Construo / GraalVM Native Image
+**/resource-config.json
+**/build/construo/
+
+# Excluir explícitamente assets generados o no deseados (si aplica),
+# pero PERMITIR la carpeta de assets original del juego:
+!/assets/

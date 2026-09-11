@@ -1,0 +1,4 @@
+rootProject.name = 'Juego10Mil-Parent'
+
+include '10kgame'
+include 'Server10Mil'

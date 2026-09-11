@@ -1,11 +1,25 @@
-[compileJava, compileTestJava]*.options*.encoding = 'UTF-8'
+plugins {
+  id 'java-library'
+  id 'eclipse'
+}
+
+java {
+  sourceCompatibility = JavaVersion.VERSION_17
+  targetCompatibility = JavaVersion.VERSION_17
+}
+
+// Configuración moderna y segura para la codificación UTF-8
+tasks.withType(JavaCompile).configureEach {
+  options.encoding = 'UTF-8'
+}
+
 eclipse.project.name = appName + '-core'
 
 dependencies {
   api "com.badlogicgames.gdx:gdx-freetype:$gdxVersion"
   api "com.badlogicgames.gdx:gdx:$gdxVersion"
 
-  if(enableGraalNative == 'true') {
+  if (project.hasProperty('enableGraalNative') && enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
   }
 }
