@@ -1,29 +1,32 @@
-package com.wiessen_10kgame;
+package com.wiessen_10kgame.ui.pantallas;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import utilidades.Boton;
-import utilidades.Dados;
-import utilidades.Entrada;
-import utilidades.ScreenManager;
-import utilidades.Sonidos;
-import utilidades.Texto;
-import utilidades.Utiles;
+import com.wiessen_10kgame.ui.componentes.Boton;
+import com.wiessen_10kgame.core.modelo.EstadoDado;
+import com.wiessen_10kgame.ui.componentes.Entrada;
+import com.wiessen_10kgame.utilidades.ScreenManager;
+import com.wiessen_10kgame.utilidades.Sonidos;
+import com.wiessen_10kgame.ui.componentes.Texto;
+
+import java.util.Arrays;
 
 public class SalaJuego implements Screen {
 
 	private SpriteBatch b = Utiles.batch;
-	private static Texto jugadoresTxt[];
-	private static int dados[] = { -1, -1, -1, -1, -1 };
+	private static Texto[] jugadoresTxt;
+	private static int[] dados = { -1, -1, -1, -1, -1 };
 	private Boton tirarBtn, plantarBtn;
 	private Texto ptsTxt, ptsTotalesTxt, ptsTotalesNro, ptsNro, turnoTxt, turnoNombre;
 	private static int turno, puntosAcum = 0, indiceTriple = -1, ultimoDado = -1, puntosTotales[];
 	@SuppressWarnings("unused")
-	private static boolean cambiarNombre = false, actualizarPuntoRonda = false, hayGanardor = false,
-			actualizarDados = false, puedePlantarse = false;
+	private static boolean cambiarNombre = false;
+    private static boolean actualizarPuntoRonda = false;
+    private static boolean hayGanardor = false;
+    private static boolean puedePlantarse = false;
 	private String jugador;
 	private Entrada e = Utiles.e;
 	private boolean clicBtn, clicBtn2;
@@ -41,9 +44,11 @@ public class SalaJuego implements Screen {
 			}
 		} while (indice < jugadoresTxt.length && !fin);
 		puntosTotales = new int[indice];
+        /*
 		if (MainCliente.hc.isAdmin()) {
 			MainCliente.hc.enviarMensaje("TurnoDeQuien?");
 		}
+         */
 	}
 
 	@Override
@@ -54,7 +59,7 @@ public class SalaJuego implements Screen {
 		tirarBtn.setPosition(Gdx.graphics.getWidth() - tirarBtn.getWidth() - 20, 20);
 		plantarBtn.setPosition(tirarBtn.getPosicion().x, tirarBtn.getPosicion().y + 20 + plantarBtn.getHeight());
 		ptsTotalesTxt = new Texto(Utiles.FUENTE_MENU, 30, Utiles.COLOR_LETRA, "Puntos totales:", Color.WHITE);
-		ptsTotalesTxt.setPosicion(Gdx.graphics.getWidth() / 2 - ptsTotalesTxt.getWidth() / 2,
+		ptsTotalesTxt.setPosicion((float) Gdx.graphics.getWidth() / 2 - ptsTotalesTxt.getWidth() / 2,
 				Gdx.graphics.getHeight() - 50);
 		turnoTxt = new Texto(Utiles.FUENTE_MENU, 26, Utiles.COLOR_LETRA, "Turno de:", Color.WHITE);
 		turnoTxt.setPosicion(20, 20 + turnoTxt.getHeight());
@@ -105,10 +110,8 @@ public class SalaJuego implements Screen {
 
 	private void verificarCambioNombre() {
 		if (cambiarNombre && jugadoresTxt[turno] != null && puntosTotales.length > turno) {
-			System.out.println("CAMBIO DE TRUNO: " + jugadoresTxt[turno].getTexto());
 			cambiarNombre = false;
 			turnoNombre.setTexto(jugadoresTxt[turno].getTexto());
-			System.out.println(puntosTotales.length + "  " + turno);
 			ptsTotalesNro.setTexto(Integer.toString(puntosTotales[turno]));
 			ptsNro.setTexto("0");
 			if (tirarBtn.isHabilitado()) {
@@ -121,18 +124,15 @@ public class SalaJuego implements Screen {
 				puedePlantarse = false;
 			}
 			reiniciarVariables();
-			dados = null;
 			dados = new int[5];
-			for (int i = 0; i < dados.length; i++) {
-				dados[i] = -1;
-			}
+            Arrays.fill(dados, -1);
 		}
 	}
 
 	private void verificarGanador() {
 		if (hayGanardor) {
 			hayGanardor = false;
-			ScreenManager.getInstance().showScreenWindow(new pantallaGanador(jugadoresTxt, turno, puntosTotales));
+			ScreenManager.getInstance().setScreen(new PantallaGanador(jugadoresTxt, turno, puntosTotales));
 		}
 	}
 
@@ -142,7 +142,7 @@ public class SalaJuego implements Screen {
 				tirarBtn.setHabilitado(false);
 				clicBtn = true;
 				Sonidos.playAudio(Sonidos.PREVIEWCOMPLETE.getAudio());
-				MainCliente.hc.enviarMensaje("ClicTirarBtn");
+				//MainCliente.hc.enviarMensaje("ClicTirarBtn");
 			}
 		} else if (plantarBtn.estaDentro(e)) {
 			if (e.isTouch() && !clicBtn2) {
@@ -150,7 +150,7 @@ public class SalaJuego implements Screen {
 				tirarBtn.setHabilitado(false);
 				plantarBtn.setHabilitado(false);
 				Sonidos.playAudio(Sonidos.PREVIEWCOMPLETE.getAudio());
-				MainCliente.hc.enviarMensaje("SumarPuntosTotales");
+				//MainCliente.hc.enviarMensaje("SumarPuntosTotales");
 			}
 		}
 		if (clicBtn && !e.isTouch()) {
@@ -165,19 +165,15 @@ public class SalaJuego implements Screen {
 		if (dados[0] != -1 && ultimoDado != -1) {
 			int contar = inicializarContar();
 			for (int i = 0; i < ultimoDado; i++) {
-				Dados.values()[dados[i]].dibujarDado(b, true, i);
+				EstadoDado.values()[dados[i]].dibujarDado(b, true, i);
 			}
 			if (indiceTriple != -1) {
 				for (int i = ultimoDado; i < contar; i++) {
-					Dados.values()[dados[i]].dibujarDado(b, true, i);
+					EstadoDado.values()[dados[i]].dibujarDado(b, true, i);
 				}
 			}
 			for (int i = contar; i < dados.length; i++) {
-				if (Dados.values()[dados[i]].isContable(dados[i])) {
-					Dados.values()[dados[i]].dibujarDado(b, true, i);
-				} else {
-					Dados.values()[dados[i]].dibujarDado(b, false, i);
-				}
+                EstadoDado.values()[dados[i]].dibujarDado(b, EstadoDado.values()[dados[i]].isContable(dados[i]), i);
 			}
 		}
 	}
@@ -222,10 +218,6 @@ public class SalaJuego implements Screen {
 		hayGanardor = true;
 	}
 
-	public Texto[] getJugadoresTxt() {
-		return jugadoresTxt;
-	}
-
 	@Override
 	public void resize(int width, int height) {
 	}
@@ -248,7 +240,7 @@ public class SalaJuego implements Screen {
 
 	public static void actualizarDados(int[] dadosRec) {
 		dados = dadosRec;
-		actualizarDados = true;
+        boolean actualizarDados = true;
 	}
 
 	public static void puedePlantarse(boolean c) {
@@ -278,17 +270,13 @@ public class SalaJuego implements Screen {
 			puntosTotales[j] = puntosTotales[j + 1];
 			System.out.println(puntosTotales[j] + "  " + j);
 		}
-		for (int j = 0; j < auxPuntosTotales.length; j++) {
-			auxPuntosTotales[j] = puntosTotales[j];
-		}
+        System.arraycopy(puntosTotales, 0, auxPuntosTotales, 0, auxPuntosTotales.length);
 		puntosTotales = null;
 		puntosTotales = new int[auxPuntosTotales.length];
-		for (int i = 0; i < auxPuntosTotales.length; i++) {
-			puntosTotales[i] = auxPuntosTotales[i];
-		}
-		for (int i = 0; i < puntosTotales.length; i++) {
-			System.out.println(puntosTotales[i]);
-		}
+        System.arraycopy(auxPuntosTotales, 0, puntosTotales, 0, auxPuntosTotales.length);
+        for (int puntosTotale : puntosTotales) {
+            System.out.println(puntosTotale);
+        }
 	}
 
 }

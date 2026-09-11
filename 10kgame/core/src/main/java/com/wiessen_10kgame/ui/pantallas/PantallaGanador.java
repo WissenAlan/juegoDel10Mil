@@ -1,18 +1,17 @@
-package com.wiessen_10kgame;
+package com.wiessen_10kgame.ui.pantallas;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-import utilidades.Boton;
-import utilidades.Entrada;
-import utilidades.ScreenManager;
-import utilidades.Sonidos;
-import utilidades.Texto;
-import utilidades.Utiles;
+import com.wiessen_10kgame.ui.componentes.Boton;
+import com.wiessen_10kgame.ui.componentes.Entrada;
+import com.wiessen_10kgame.utilidades.ScreenManager;
+import com.wiessen_10kgame.utilidades.Sonidos;
+import com.wiessen_10kgame.ui.componentes.Texto;
 
-public class pantallaGanador implements Screen {
+public class PantallaGanador implements Screen {
 
 	private Texto jugadoresTxt[], ganadorTxt;
 	private int turno, puntosTotales[];
@@ -21,7 +20,7 @@ public class pantallaGanador implements Screen {
 	private Boton salirbtn;
 	private Entrada e = Utiles.e;
 
-	public pantallaGanador(Texto[] jugadoresTxt, int turno, int[] puntosTotales) {
+	public PantallaGanador(Texto[] jugadoresTxt, int turno, int[] puntosTotales) {
 		this.jugadoresTxt = jugadoresTxt.clone();
 		this.turno = turno;
 		this.puntosTotales = puntosTotales.clone();
@@ -59,8 +58,8 @@ public class pantallaGanador implements Screen {
 				salirbtn.setHabilitado(false);
 				clicBtn = true;
 				Sonidos.playAudio(Sonidos.PREVIEWCOMPLETE.getAudio());
-				MainCliente.hc.terminar();
-				ScreenManager.getInstance().showScreenWindow(new MenuPrincipal());
+				//MainCliente.hc.terminar();
+				ScreenManager.getInstance().setScreen(new MenuPrincipal());
 			}
 		}
 		if (clicBtn && !e.isTouch()) {

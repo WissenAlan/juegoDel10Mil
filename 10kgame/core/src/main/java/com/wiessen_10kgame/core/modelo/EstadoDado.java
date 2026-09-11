@@ -1,10 +1,10 @@
-package utilidades;
+package com.wiessen_10kgame.core.modelo;
 
 import com.badlogic.gdx.graphics.Texture;
 import com.badlogic.gdx.graphics.g2d.Sprite;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
-public enum Dados {
+public enum EstadoDado {
 
 	UNO(new Sprite(new Texture("dados/dado 1.png")), new Sprite(new Texture("dados/dado 1 verde.png")), 1),
 	DOS(new Sprite(new Texture("dados/dado 2.png")), new Sprite(new Texture("dados/dado 2 verde.png")), 2),
@@ -17,7 +17,7 @@ public enum Dados {
 	private int numero;
 	private final float X = 170, Y = 300;
 
-	private Dados(Sprite blanco, Sprite verde, int numero) {
+	private EstadoDado(Sprite blanco, Sprite verde, int numero) {
 		texturas[0] = blanco;
 		texturas[1] = verde;
 		for (int i = 0; i < texturas.length; i++) {

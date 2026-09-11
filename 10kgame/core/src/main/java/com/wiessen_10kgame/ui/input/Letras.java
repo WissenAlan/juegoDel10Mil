@@ -1,4 +1,4 @@
-package teclas;
+package com.wiessen_10kgame.ui.input;
 
 import com.badlogic.gdx.Input.Keys;
 
@@ -29,10 +29,10 @@ public enum Letras {
 	X("x","X", Keys.X),
 	Y("y","Y", Keys.Y),
 	Z("z","Z", Keys.Z);
-	
+
 	private String min, may;
 	private int key;
-	
+
 	Letras(String min, String may, int key){
 		this.min = min;
 		this.may = may;
@@ -42,7 +42,7 @@ public enum Letras {
 	public int getKey() {
 		return this.key;
 	}
-	
+
 	public String getMin() {
 		return this.min;
 	}
@@ -50,5 +50,5 @@ public enum Letras {
 	public String getMay() {
 		return this.may;
 	}
-	
+
 }

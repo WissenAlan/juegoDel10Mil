@@ -1,11 +1,11 @@
-package utilidades;
+package com.wiessen_10kgame.ui.componentes;
 
 import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Input.Keys;
 import com.badlogic.gdx.InputProcessor;
 
-import teclas.Tecla;
-import teclas.TeclaDef;
+import com.wiessen_10kgame.ui.input.Tecla;
+import com.wiessen_10kgame.ui.input.TeclaDef;
 
 public class Entrada implements InputProcessor {
 

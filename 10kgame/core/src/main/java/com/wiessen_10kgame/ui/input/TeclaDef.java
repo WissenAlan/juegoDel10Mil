@@ -1,11 +1,13 @@
-package teclas;
+package com.wiessen_10kgame.ui.input;
+
+import com.wiessen_10kgame.core.enumeradores.TipoTecla;
 
 public class TeclaDef {
-	
+
 	private int keyCode,charCode;
 	private TipoTecla tipoTecla;
 	private boolean caracter;
-	
+
 	public TeclaDef(int keyCode, int charCode, boolean caracter) {
 		this.keyCode = keyCode;
 		this.charCode = charCode;
@@ -16,28 +18,28 @@ public class TeclaDef {
 		//si (caracter) entonces tipoTecla es NORMAL
 		//si (!caracter) entonces tipoTecla es FUNCION
 	}
-	
+
 	public TeclaDef(int keyCode, int charCode) {
 		this.keyCode = keyCode;
 		this.charCode = charCode;
 	}
-	
+
 	public int getKeyCode() {
 		return keyCode;
 	}
-	
+
 	public int getCharCode() {
 		return charCode;
 	}
-	
+
 	public boolean getCaracter() {
 		return caracter;
 	}
-	
+
 	public TipoTecla getTipoTecla() {
 		return tipoTecla;
 	}
-	
+
 	public boolean esIgual(Tecla tecla) {
 		return (keyCode==tecla.getTecla().getKeyCode()&&charCode==tecla.getTecla().getCharCode())?true:false;
 	}

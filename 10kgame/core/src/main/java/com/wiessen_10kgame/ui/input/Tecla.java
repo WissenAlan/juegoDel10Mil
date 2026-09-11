@@ -1,4 +1,4 @@
-package teclas;
+package com.wiessen_10kgame.ui.input;
 
 public enum Tecla {
 

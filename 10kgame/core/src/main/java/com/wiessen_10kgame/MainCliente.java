@@ -2,8 +2,11 @@ package com.wiessen_10kgame;
 
 import com.badlogic.gdx.Game;
 
-import red.HiloCliente;
-import utilidades.ScreenManager;
+import com.badlogic.gdx.Gdx;
+import com.wiessen_10kgame.red.HiloCliente;
+import com.wiessen_10kgame.ui.componentes.Entrada;
+import com.wiessen_10kgame.ui.pantallas.MenuPrincipal;
+import com.wiessen_10kgame.utilidades.ScreenManager;
 
 /**
  * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all
@@ -11,27 +14,46 @@ import utilidades.ScreenManager;
  */
 public class MainCliente extends Game {
 
-	public static HiloCliente hc;
+    private HiloCliente hc;
+    private Entrada e;
 
-	@Override
-	public void create() {
-		ScreenManager.getInstance().initialize(this);
-		ScreenManager.getInstance().showScreenWindow(new MenuPrincipal());
-	}
+    @Override
+    public void create() {
+        e = new Entrada();
+        Gdx.input.setInputProcessor(e);
+        ScreenManager.getInstance().initialize(this, e);
+        ScreenManager.getInstance().setScreen(new MenuPrincipal());
+    }
 
-	@Override
-	public void dispose() {
-		if (hc != null) {
-			if (hc.isAlive()) {
-				hc.terminar();
-				hc.interrupt();
-			}
-		}
-	}
+    public void conectarServidor(String nombre) {
+        // Cerramos cualquier conexión previa por seguridad
+        desconectarServidor();
 
-	public static void crearHilo(String nombre) {
-		hc = new HiloCliente();
-		hc.start();
-		hc.enviarMensaje("nombre%" + nombre);
-	}
+        hc = new HiloCliente("10kgame.duckdns.org",nombre);
+        hc.start();
+    }
+
+    /**
+     * Desconecta el hilo de red de forma segura.
+     */
+    public void desconectarServidor() {
+        if (hc != null) {
+            hc.terminar(); // HiloCliente debe encargarse de cerrar su propio Socket
+            hc = null;
+        }
+    }
+
+    public HiloCliente getHiloCliente() {
+        return hc;
+    }
+
+    public boolean isOnline() {
+        return hc != null && hc.isAlive();
+    }
+
+    @Override
+    public void dispose() {
+        desconectarServidor();
+        ScreenManager.getInstance().dispose();
+    }
 }
