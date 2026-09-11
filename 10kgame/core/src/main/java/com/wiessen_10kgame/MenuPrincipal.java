@@ -119,7 +119,7 @@ public class MenuPrincipal implements Screen {
 		if (!nombre.getTexto().isEmpty()) {
 			if (Gdx.input.isKeyJustPressed(Input.Keys.ENTER) && !flag) {
 				flag = true;
-				MainCliente.crearHilo(nombre.getTexto());
+				//MainCliente.crearHilo(nombre.getTexto());
 				ScreenManager.getInstance().showScreenWindow(new SalaEspera(nombre.getTexto()));
 			}
 		}
