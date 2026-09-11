@@ -8,7 +8,6 @@ java {
   targetCompatibility = JavaVersion.VERSION_17
 }
 
-// Configuración moderna y segura para la codificación UTF-8
 tasks.withType(JavaCompile).configureEach {
   options.encoding = 'UTF-8'
 }
@@ -22,4 +21,23 @@ dependencies {
   if (project.hasProperty('enableGraalNative') && enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-annotations:$graalHelperVersion"
   }
+}
+
+// 1. Ubicar la carpeta de assets correcta dentro del submódulo 10kgame
+File assetsFolder = file("$projectDir/../assets")
+if (!assetsFolder.exists()) {
+  assetsFolder.mkdirs()
+}
+
+// 2. Redirigir explícitamente las propiedades de la tarea que valida la ruta
+tasks.matching { it.name == 'generateAssetList' }.configureEach { task ->
+  // Si la tarea expone la propiedad de directorio de assets (común en plugins de LibGDX)
+  if (task.hasProperty('assetsDir')) {
+    task.property('assetsDir', assetsFolder)
+  } else if (task.hasProperty('inputDir')) {
+    task.property('inputDir', assetsFolder)
+  }
+
+  // Desactivar la tarea si la carpeta de assets no contiene archivos aún
+  task.onlyIf { assetsFolder.exists() && assetsFolder.list().length > 0 }
 }

@@ -1,4 +1,5 @@
 rootProject.name = 'Juego10Mil-Parent'
 
-include '10kgame'
+include '10kgame:core'
+include '10kgame:lwjgl3'
 include 'Server10Mil'

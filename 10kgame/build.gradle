@@ -22,37 +22,18 @@ allprojects {
   }
 }
 
-configure(subprojects) {
+// Configuración común para todos los subproyectos de 10kgame
+subprojects {
   apply plugin: 'java-library'
+
+  version = '$projectVersion'
+  ext.appName = '10KGame'
 
   java {
     sourceCompatibility = JavaVersion.VERSION_17
     targetCompatibility = JavaVersion.VERSION_17
   }
 
-// Generación automática de lista de assets
-  tasks.register('generateAssetList') {
-    inputs.dir("${project.rootDir}/assets/")
-    File assetsFolder = new File("${project.rootDir}/assets/")
-    File assetsFile = new File(assetsFolder, "assets.txt")
-
-    doLast {
-      assetsFile.delete()
-      fileTree(assetsFolder).collect { assetsFolder.relativePath(it) }.sort().each {
-        assetsFile.append(it + "\n")
-      }
-    }
-  }
-  processResources.dependsOn 'generateAssetList'
-
-  compileJava {
-    options.incremental = true
-  }
-}
-
-subprojects {
-  version = '$projectVersion'
-  ext.appName = '10KGame'
   repositories {
     mavenCentral()
     maven { url 'https://s01.oss.sonatype.org' }
@@ -61,6 +42,40 @@ subprojects {
     maven { url 'https://s01.oss.sonatype.org/content/repositories/snapshots/' }
     maven { url 'https://jitpack.io' }
   }
+
+  compileJava {
+    options.incremental = true
+  }
 }
 
-eclipse.project.name = '10KGame' + '-parent'
+// Tarea de assets registrada EXCLUSIVAMENTE en el subproyecto :core
+project(':10kgame:core') {
+  tasks.register('generateAssetList') {
+    File assetsFolder = file("${rootProject.projectDir}/10kgame/assets")
+    File assetsFile = new File(assetsFolder, "assets.txt")
+
+    if (!assetsFolder.exists()) {
+      assetsFolder.mkdirs()
+    }
+
+    inputs.dir(assetsFolder).optional()
+    outputs.file(assetsFile)
+
+    doLast {
+      if (assetsFolder.exists()) {
+        if (assetsFile.exists()) {
+          assetsFile.delete()
+        }
+        fileTree(assetsFolder).collect { assetsFolder.relativePath(it) }.sort().each {
+          assetsFile.append(it + "\n")
+        }
+      }
+    }
+  }
+
+  tasks.named('processResources') {
+    dependsOn 'generateAssetList'
+  }
+}
+
+eclipse.project.name = '10KGame-parent'
