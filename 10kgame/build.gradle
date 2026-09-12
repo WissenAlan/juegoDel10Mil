@@ -48,33 +48,36 @@ subprojects {
   }
 }
 
-// Tarea de assets registrada EXCLUSIVAMENTE en el subproyecto :core
-project(':10kgame:core') {
-  tasks.register('generateAssetList') {
-    File assetsFolder = file("${rootProject.projectDir}/10kgame/assets")
-    File assetsFile = new File(assetsFolder, "assets.txt")
+// Tarea de assets registrada en el subproyecto core
+def coreProject = findProject(':core') ?: findProject(':10kgame:core')
+if (coreProject != null) {
+  configure(coreProject) {
+    tasks.register('generateAssetList') {
+      File assetsFolder = file("${projectDir}/../assets")
+      File assetsFile = new File(assetsFolder, "assets.txt")
 
-    if (!assetsFolder.exists()) {
-      assetsFolder.mkdirs()
-    }
+      if (!assetsFolder.exists()) {
+        assetsFolder.mkdirs()
+      }
 
-    inputs.dir(assetsFolder).optional()
-    outputs.file(assetsFile)
+      inputs.dir(assetsFolder).optional()
+      outputs.file(assetsFile)
 
-    doLast {
-      if (assetsFolder.exists()) {
-        if (assetsFile.exists()) {
-          assetsFile.delete()
-        }
-        fileTree(assetsFolder).collect { assetsFolder.relativePath(it) }.sort().each {
-          assetsFile.append(it + "\n")
+      doLast {
+        if (assetsFolder.exists()) {
+          if (assetsFile.exists()) {
+            assetsFile.delete()
+          }
+          fileTree(assetsFolder).collect { assetsFolder.relativePath(it) }.sort().each {
+            assetsFile.append(it + "\n")
+          }
         }
       }
     }
-  }
 
-  tasks.named('processResources') {
-    dependsOn 'generateAssetList'
+    tasks.named('processResources') {
+      dependsOn 'generateAssetList'
+    }
   }
 }
 

@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.wiessen_10kgame.ui.componentes.Boton;
 import com.wiessen_10kgame.ui.componentes.Entrada;
 import com.wiessen_10kgame.utilidades.ScreenManager;
@@ -18,11 +19,11 @@ public class SalaEspera implements Screen {
     private String jugador;
     public static String jugadores[] = new String[6];
     private int i = 0;
-    private SpriteBatch b = Utiles.batch;
+    private SpriteBatch b;
     private static Texto jugadoresTxt[] = new Texto[6];
     private Texto participantesTxt;
     private Boton empezarBtn;
-    private Entrada e = Utiles.e;
+    private Entrada e;
 
     public SalaEspera(String jugador) {
         this.jugador = jugador;
@@ -30,14 +31,14 @@ public class SalaEspera implements Screen {
 
     @Override
     public void show() {
-        participantesTxt = new Texto(Utiles.FUENTE_MENU, 32, Color.WHITE, "Participantes:", Utiles.COLOR_LETRA);
+        //participantesTxt = new Texto(Utiles.FUENTE_MENU, 32, Color.WHITE, "Participantes:", Utiles.COLOR_LETRA);
         participantesTxt.setPosicion(100, Gdx.graphics.getHeight() - 50);
         Gdx.input.setInputProcessor(e);
     }
 
     @Override
     public void render(float delta) {
-        Utiles.limpiarPantalla();
+        ScreenUtils.clear(0, 0, 0, 1f);
         b.begin();
         /*
         if (MainCliente.hc.isAdmin()) {
@@ -98,7 +99,7 @@ public class SalaEspera implements Screen {
         boolean fin = false;
         do {
             if (jugadoresTxt[u] == null && jugadores[u] != null) {
-                jugadoresTxt[u] = new Texto(Utiles.FUENTE_MENU, 28, Color.WHITE, jugadores[u], Utiles.COLOR_LETRA);
+              // jugadoresTxt[u] = new Texto(Utiles.FUENTE_MENU, 28, Color.WHITE, jugadores[u], Utiles.COLOR_LETRA);
                 jugadoresTxt[u].setPosicion(100, participantesTxt.getPosicion().y - (80 * (u + 1)));
             } else if (jugadores[u] == null) {
                 fin = true;

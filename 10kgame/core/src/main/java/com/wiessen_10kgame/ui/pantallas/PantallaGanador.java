@@ -5,6 +5,7 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.wiessen_10kgame.ui.componentes.Boton;
 import com.wiessen_10kgame.ui.componentes.Entrada;
 import com.wiessen_10kgame.utilidades.ScreenManager;
@@ -16,9 +17,9 @@ public class PantallaGanador implements Screen {
 	private Texto jugadoresTxt[], ganadorTxt;
 	private int turno, puntosTotales[];
 	private boolean clicBtn = false;
-	private SpriteBatch b = Utiles.batch;
+	private SpriteBatch b;
 	private Boton salirbtn;
-	private Entrada e = Utiles.e;
+	private Entrada e;
 
 	public PantallaGanador(Texto[] jugadoresTxt, int turno, int[] puntosTotales) {
 		this.jugadoresTxt = jugadoresTxt.clone();
@@ -28,7 +29,8 @@ public class PantallaGanador implements Screen {
 
 	@Override
 	public void show() {
-		Gdx.input.setInputProcessor(e);
+		/*
+        Gdx.input.setInputProcessor(e);
 		ganadorTxt = new Texto(Utiles.FUENTE_MENU, 32, Color.WHITE, "Ganador es: " + jugadoresTxt[turno].getTexto(),
 				Utiles.COLOR_LETRA);
 		ganadorTxt.setPosicion(Gdx.graphics.getWidth() / 2 - ganadorTxt.getWidth() / 2, Gdx.graphics.getHeight() - 100);
@@ -40,11 +42,13 @@ public class PantallaGanador implements Screen {
 		}
 		salirbtn = new Boton("Salir", Color.WHITE, Color.BLACK, 30, true);
 		salirbtn.setPosition(Gdx.graphics.getWidth() - salirbtn.getWidth() - 20, 20);
+
+		 */
 	}
 
 	@Override
 	public void render(float delta) {
-		Utiles.limpiarPantalla();
+        ScreenUtils.clear(0, 0, 0, 1f);
 		verificarSalirBtn();
 		b.begin();
 		dibujarTextos();

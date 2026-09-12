@@ -5,9 +5,11 @@ import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
 
+import com.badlogic.gdx.utils.ScreenUtils;
 import com.wiessen_10kgame.ui.componentes.Boton;
 import com.wiessen_10kgame.core.modelo.EstadoDado;
 import com.wiessen_10kgame.ui.componentes.Entrada;
+import com.wiessen_10kgame.ui.componentes.RenderizadorDados;
 import com.wiessen_10kgame.utilidades.ScreenManager;
 import com.wiessen_10kgame.utilidades.Sonidos;
 import com.wiessen_10kgame.ui.componentes.Texto;
@@ -16,7 +18,7 @@ import java.util.Arrays;
 
 public class SalaJuego implements Screen {
 
-	private SpriteBatch b = Utiles.batch;
+	private SpriteBatch b;
 	private static Texto[] jugadoresTxt;
 	private static int[] dados = { -1, -1, -1, -1, -1 };
 	private Boton tirarBtn, plantarBtn;
@@ -28,8 +30,9 @@ public class SalaJuego implements Screen {
     private static boolean hayGanardor = false;
     private static boolean puedePlantarse = false;
 	private String jugador;
-	private Entrada e = Utiles.e;
+	private Entrada e;
 	private boolean clicBtn, clicBtn2;
+	private RenderizadorDados renderizadorDados;
 
 	public SalaJuego(Texto[] jugadores, String jugador) {
 		jugadoresTxt = jugadores;
@@ -53,6 +56,7 @@ public class SalaJuego implements Screen {
 
 	@Override
 	public void show() {
+        /*
 		Gdx.input.setInputProcessor(e);
 		tirarBtn = new Boton("Tirar", Color.WHITE, Color.BLACK, 30, true);
 		plantarBtn = new Boton("Me planto", Color.WHITE, Color.BLACK, 22, true);
@@ -73,11 +77,13 @@ public class SalaJuego implements Screen {
 		turnoNombre.setPosicion(turnoTxt.getPosicion().x + turnoTxt.getWidth() + 10, turnoTxt.getPosicion().y);
 		ptsNro = new Texto(Utiles.FUENTE_MENU, 26, Color.valueOf("0eac12"), "0", Color.WHITE);
 		ptsNro.setPosicion(ptsTxt.getPosicion().x + ptsTxt.getWidth() + 10, ptsTxt.getPosicion().y);
+
+         */
 	}
 
 	@Override
 	public void render(float delta) {
-		Utiles.limpiarPantalla();
+        ScreenUtils.clear(0, 0, 0, 1f);
 		verificarGanador();
 		verificarCambioNombre();
 		verificarPuntoRonda();
@@ -163,17 +169,20 @@ public class SalaJuego implements Screen {
 
 	private void mostrarDados() {
 		if (dados[0] != -1 && ultimoDado != -1) {
+			if (renderizadorDados == null) {
+				renderizadorDados = new RenderizadorDados();
+			}
 			int contar = inicializarContar();
 			for (int i = 0; i < ultimoDado; i++) {
-				EstadoDado.values()[dados[i]].dibujarDado(b, true, i);
+				renderizadorDados.dibujarDado(b, dados[i], true, i);
 			}
 			if (indiceTriple != -1) {
 				for (int i = ultimoDado; i < contar; i++) {
-					EstadoDado.values()[dados[i]].dibujarDado(b, true, i);
+					renderizadorDados.dibujarDado(b, dados[i], true, i);
 				}
 			}
 			for (int i = contar; i < dados.length; i++) {
-                EstadoDado.values()[dados[i]].dibujarDado(b, EstadoDado.values()[dados[i]].isContable(dados[i]), i);
+				renderizadorDados.dibujarDado(b, dados[i], EstadoDado.values()[dados[i]].isContable(dados[i]), i);
 			}
 		}
 	}
@@ -236,6 +245,10 @@ public class SalaJuego implements Screen {
 
 	@Override
 	public void dispose() {
+		if (renderizadorDados != null) {
+			renderizadorDados.dispose();
+			renderizadorDados = null;
+		}
 	}
 
 	public static void actualizarDados(int[] dadosRec) {

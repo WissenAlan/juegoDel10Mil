@@ -29,7 +29,7 @@ public class MenuPrincipal implements Screen {
 
     @Override
     public void show() {
-        Gdx.input.setInputProcessor(e);
+        b = new SpriteBatch();
         titulo = new Texto(Recursos.FUENTE_MENU, 32, Color.WHITE, "EL JUEGO DEL 10.000", Recursos.COLOR_LETRA);
         titulo.setPosicion((float) Gdx.graphics.getWidth() / 2 - titulo.getWidth() / 2, Gdx.graphics.getHeight() - 100);
         jugar = new Texto(Recursos.FUENTE_MENU, 26, Color.WHITE, "JUGAR", Recursos.COLOR_LETRA);
