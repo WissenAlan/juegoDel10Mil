@@ -1,4 +1,4 @@
-package com.Server10Mil;
+package com.server10mil;
 
 public class LanzarServidor {
 

@@ -55,6 +55,6 @@ class JugadorTest {
         assertTrue(j.alcanzoMeta(10000));
 
         j.setPuntosTotales(10500);
-        assertTrue(j.alcanzoMeta(10000));
+        assertFalse(j.alcanzoMeta(10000));
     }
 }

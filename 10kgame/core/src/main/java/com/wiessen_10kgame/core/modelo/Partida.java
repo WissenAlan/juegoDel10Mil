@@ -23,20 +23,24 @@ public class Partida {
     private int turnoActual;
     private final int puntajeMeta;
     private final int puntajeMinimoPlantarse;
+    private final int puntajeMinimoSalida;
     private EstadoPartida estado;
     private Jugador ganador;
+    private final CalculadorPuntos10Mil calculador;
 
     public Partida() {
-        this(CalculadorPuntos10Mil.PUNTAJE_META_DEFAULT, CalculadorPuntos10Mil.PUNTAJE_MINIMO_PLANTARSE);
+        this(CalculadorPuntos10Mil.PUNTAJE_META_DEFAULT, CalculadorPuntos10Mil.PUNTAJE_MINIMO_PLANTARSE, CalculadorPuntos10Mil.PUNTAJE_MINIMO_SALIDA);
     }
 
-    public Partida(int puntajeMeta, int puntajeMinimoPlantarse) {
+    public Partida(int puntajeMeta, int puntajeMinimoPlantarse, int puntajeMinimoSalida) {
         this.jugadores = new ArrayList<>();
         this.turnoActual = 0;
         this.puntajeMeta = puntajeMeta;
         this.puntajeMinimoPlantarse = puntajeMinimoPlantarse;
+        this.puntajeMinimoSalida = puntajeMinimoSalida;
         this.estado = EstadoPartida.ESPERANDO_JUGADORES;
         this.ganador = null;
+        this.calculador = new CalculadorPuntos10Mil();
     }
 
     /**
@@ -110,7 +114,7 @@ public class Partida {
         Jugador actual = getJugadorActual();
         if (actual == null || estado != EstadoPartida.EN_CURSO) return false;
 
-        if (!actual.puedePlantarse(puntajeMinimoPlantarse)) {
+        if (!calculador.puedePlantarse(actual.getPuntosRonda(), actual.getPuntosTotales(), puntajeMeta, puntajeMinimoPlantarse)) {
             return false;
         }
 

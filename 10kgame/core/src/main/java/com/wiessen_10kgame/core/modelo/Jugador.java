@@ -86,14 +86,14 @@ public class Jugador {
      * Determina si el jugador tiene suficientes puntos para plantarse (por defecto 750).
      */
     public boolean puedePlantarse(int puntajeMinimo) {
-        return (puntosTotales >= puntajeMinimo || puntosRonda >= puntajeMinimo);
+        return (puntosTotales >= puntajeMinimo || puntosRonda >= puntajeMinimo || puntosRonda + puntosTotales == puntajeMinimo);
     }
 
     /**
      * Comprueba si el jugador alcanzó o superó la meta para ganar.
      */
     public boolean alcanzoMeta(int meta) {
-        return puntosTotales >= meta;
+        return puntosTotales == meta;
     }
 
     @Override
@@ -112,10 +112,10 @@ public class Jugador {
     @Override
     public String toString() {
         return "Jugador{" +
-                "nombre='" + nombre + '\'' +
-                ", puntosTotales=" + puntosTotales +
-                ", puntosRonda=" + puntosRonda +
-                ", admin=" + admin +
-                '}';
+            "nombre='" + nombre + '\'' +
+            ", puntosTotales=" + puntosTotales +
+            ", puntosRonda=" + puntosRonda +
+            ", admin=" + admin +
+            '}';
     }
 }

@@ -51,15 +51,38 @@ class PartidaTest {
         partida.agregarJugador(j2);
         partida.iniciarPartida();
 
-        j1.sumarPuntosRonda(800);
+        j1.sumarPuntosRonda(600);
         boolean exito = partida.plantarJugadorActual();
+
+        assertFalse(exito);
+        assertEquals(0, j1.getPuntosTotales());
+
+        j1.sumarPuntosRonda(200);
+        exito = partida.plantarJugadorActual();
 
         assertTrue(exito);
         assertEquals(800, j1.getPuntosTotales());
-        assertEquals(0, j1.getPuntosRonda());
+
         // El turno pasó a Carlos
         assertEquals(j2, partida.getJugadorActual());
-        assertFalse(partida.hayGanador());
+    }
+
+    @Test
+    @DisplayName("Plantarse post-salida y cambia de turno")
+    void testPlantarsePostSalida() {
+        Partida partida = new Partida();
+        Jugador j1 = new Jugador("Alan");
+        partida.agregarJugador(j1);
+        partida.iniciarPartida();
+
+        j1.setPuntosTotales(800);
+
+        j1.sumarPuntosRonda(50);
+        boolean exito = partida.plantarJugadorActual();
+
+        assertTrue(exito);
+        assertEquals(850, j1.getPuntosTotales());
+        assertEquals(0, j1.getPuntosRonda());
     }
 
     @Test
@@ -77,5 +100,19 @@ class PartidaTest {
         assertTrue(partida.hayGanador());
         assertEquals(j1, partida.getGanador());
         assertEquals(Partida.EstadoPartida.FINALIZADA, partida.getEstado());
+    }
+    @Test
+    @DisplayName("Detección de pasar la meta")
+    void testSuperoLaMeta() {
+        Partida partida = new Partida();
+        Jugador j1 = new Jugador("Alan");
+        partida.agregarJugador(j1);
+        partida.iniciarPartida();
+
+        j1.setPuntosTotales(9200);
+        j1.sumarPuntosRonda(1000); // 9200 + 1000 = 10.200
+        partida.plantarJugadorActual();
+
+        assertFalse(partida.hayGanador());
     }
 }

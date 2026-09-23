@@ -4,147 +4,200 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
 import com.badlogic.gdx.utils.ScreenUtils;
+import com.wiessen_10kgame.core.Recursos;
+import com.wiessen_10kgame.core.controlador.ControladorJuego;
+import com.wiessen_10kgame.core.controlador.ControladorJuegoListener;
+import com.wiessen_10kgame.core.modelo.Jugador;
+import com.wiessen_10kgame.red.HiloCliente;
 import com.wiessen_10kgame.ui.componentes.Boton;
 import com.wiessen_10kgame.ui.componentes.Entrada;
+import com.wiessen_10kgame.ui.componentes.Texto;
 import com.wiessen_10kgame.utilidades.ScreenManager;
 import com.wiessen_10kgame.utilidades.Sonidos;
-import com.wiessen_10kgame.ui.componentes.Texto;
 
-public class SalaEspera implements Screen {
+import java.util.ArrayList;
+import java.util.List;
 
-    private boolean primeraVez = false, clicBtn = false;
-    private static boolean crear, empezar = false;
-    private String jugador;
-    public static String jugadores[] = new String[6];
-    private int i = 0;
-    private SpriteBatch b;
-    private static Texto jugadoresTxt[] = new Texto[6];
-    private Texto participantesTxt;
+/**
+ * Pantalla de sala de espera (lobby).
+ * Muestra los jugadores conectados y permite al administrador iniciar la partida.
+ * Desacoplada del modelo y sin variables estáticas.
+ */
+public class SalaEspera implements Screen, ControladorJuegoListener {
+
+    private final ControladorJuego controlador;
+    private final HiloCliente hiloCliente;
+
+    private SpriteBatch batch;
+    private Texto participantesTituloTxt;
+    private final List<Texto> jugadoresTxt = new ArrayList<>();
     private Boton empezarBtn;
-    private Entrada e;
+    private Entrada entrada;
+    private boolean clicBoton = false;
+    private boolean cambiarASalaJuego = false;
 
-    public SalaEspera(String jugador) {
-        this.jugador = jugador;
+    public SalaEspera(ControladorJuego controlador, HiloCliente hiloCliente) {
+        this.controlador = controlador;
+        this.hiloCliente = hiloCliente;
+    }
+
+    public SalaEspera(ControladorJuego controlador) {
+        this(controlador, null);
     }
 
     @Override
     public void show() {
-        //participantesTxt = new Texto(Utiles.FUENTE_MENU, 32, Color.WHITE, "Participantes:", Utiles.COLOR_LETRA);
-        participantesTxt.setPosicion(100, Gdx.graphics.getHeight() - 50);
-        Gdx.input.setInputProcessor(e);
+        batch = new SpriteBatch();
+        entrada = ScreenManager.getInstance().getEntrada();
+        if (entrada != null) {
+            Gdx.input.setInputProcessor(entrada);
+        }
+
+        participantesTituloTxt = new Texto(Recursos.FUENTE_MENU, 32, Color.WHITE, "Participantes:", Recursos.COLOR_LETRA);
+        participantesTituloTxt.setPosicion(100, Gdx.graphics.getHeight() - 50);
+
+        if (controlador != null) {
+            controlador.agregarListener(this);
+            reconstruirTextosJugadores(controlador.getJugadores());
+        }
+
+        empezarBtn = new Boton("Empezar", Color.WHITE, Color.BLACK, 28, false);
+        empezarBtn.setPosition(Gdx.graphics.getWidth() - empezarBtn.getWidth() - 50, 50);
     }
 
     @Override
     public void render(float delta) {
         ScreenUtils.clear(0, 0, 0, 1f);
-        b.begin();
-        /*
-        if (MainCliente.hc.isAdmin()) {
-			procesarAdmin();
-		}
-		*/
-        if (crear) {
-            crearTexto();
-            crear = false;
-        }
-        if (empezar) {
-            empezar = false;
-            ScreenManager.getInstance().setScreen(new SalaJuego(jugadoresTxt, jugador));
+
+        if (cambiarASalaJuego) {
+            cambiarASalaJuego = false;
+            ScreenManager.getInstance().setScreen(new SalaJuego(controlador, hiloCliente));
+            return;
         }
 
-        mostrarJugadores();
-        b.end();
+        actualizarBotonEmpezar();
 
+        batch.begin();
+        participantesTituloTxt.dibujar(batch);
+
+        for (Texto txt : jugadoresTxt) {
+            if (txt != null) {
+                txt.dibujar(batch);
+            }
+        }
+
+        if (controlador != null && controlador.isAdmin()) {
+            empezarBtn.draw(batch);
+        }
+        batch.end();
     }
 
-    private void procesarAdmin() {
-        if (!primeraVez) {
-            primeraVez = true;
-            empezarBtn = new Boton("Empezar", Color.WHITE, Color.BLACK, 28, true);
-            empezarBtn.setPosition(Gdx.graphics.getWidth() - empezarBtn.getWidth() - 50, 50);
-        }
-        if (jugadoresTxt[1] == null && empezarBtn.isHabilitado()) {
-            empezarBtn.setHabilitado(false);
-        } else if (jugadoresTxt[1] != null && !empezarBtn.isHabilitado()) {
-            empezarBtn.setHabilitado(true);
-        }
-        empezarBtn.draw(b);
-        if (empezarBtn.estaDentro(e)) {
-            if (e.isTouch() && !clicBtn) {
-                clicBtn = true;
+    private void actualizarBotonEmpezar() {
+        if (controlador == null || !controlador.isAdmin()) return;
+
+        boolean puedeEmpezar = !controlador.getJugadores().isEmpty();
+        empezarBtn.setHabilitado(puedeEmpezar);
+
+        if (entrada != null && empezarBtn.estaDentro(entrada)) {
+            if (entrada.isTouch() && !clicBoton && puedeEmpezar) {
+                clicBoton = true;
                 Sonidos.playAudio(Sonidos.PREVIEWCOMPLETE.getAudio());
-                //MainCliente.hc.enviarMensaje("Empezar");
+                if (hiloCliente != null) {
+                    hiloCliente.enviarMensaje("Empezar");
+                } else {
+                    controlador.iniciarPartida();
+                }
             }
+        }
+
+        if (clicBoton && entrada != null && !entrada.isTouch()) {
+            clicBoton = false;
         }
     }
 
-    private void mostrarJugadores() {
-        participantesTxt.dibujar(b);
-        i = 0;
-        boolean flag = false;
-        do {
-            if (jugadoresTxt[i] != null) {
-                jugadoresTxt[i].dibujar(b);
-            } else {
-                flag = true;
-            }
-            i++;
-        } while (!flag && i < jugadoresTxt.length);
+    private synchronized void reconstruirTextosJugadores(List<Jugador> jugadores) {
+        jugadoresTxt.clear();
+        if (jugadores == null) return;
+
+        for (int i = 0; i < jugadores.size(); i++) {
+            Jugador j = jugadores.get(i);
+            String etiqueta = (i + 1) + ". " + j.getNombre() + (j.isAdmin() ? " (Admin)" : "");
+            Texto txt = new Texto(Recursos.FUENTE_MENU, 28, Color.WHITE, etiqueta, Recursos.COLOR_LETRA);
+            txt.setPosicion(100, participantesTituloTxt.getY() - (60 * (i + 1)));
+            jugadoresTxt.add(txt);
+        }
     }
 
-    public void crearTexto() {
-        int u = 0;
-        boolean fin = false;
-        do {
-            if (jugadoresTxt[u] == null && jugadores[u] != null) {
-              // jugadoresTxt[u] = new Texto(Utiles.FUENTE_MENU, 28, Color.WHITE, jugadores[u], Utiles.COLOR_LETRA);
-                jugadoresTxt[u].setPosicion(100, participantesTxt.getPosicion().y - (80 * (u + 1)));
-            } else if (jugadores[u] == null) {
-                fin = true;
-            }
-            u++;
-        } while (!fin && u < jugadoresTxt.length);
+    // --- ControladorJuegoListener ---
+
+    @Override
+    public void onListaJugadoresActualizada(List<Jugador> jugadores) {
+        reconstruirTextosJugadores(jugadores);
     }
 
     @Override
-    public void resize(int width, int height) {
+    public void onPartidaIniciada() {
+        cambiarASalaJuego = true;
     }
 
     @Override
-    public void pause() {
-
-    }
+    public void onTurnoCambiado(int indiceTurno, Jugador jugadorActual, boolean esMiTurno) {}
 
     @Override
-    public void resume() {
-    }
+    public void onDadosActualizados(int[] dados, int ultimoDado, int indiceTriple) {}
+
+    @Override
+    public void onPuntosRondaActualizados(int puntosRonda) {}
+
+    @Override
+    public void onPuntosTotalesActualizados(int indiceJugador, int nuevosPuntosTotales) {}
+
+    @Override
+    public void onPuedePlantarseCambiado(boolean puedePlantarse) {}
+
+    @Override
+    public void onGanadorDeclarado(Jugador ganador, int[] puntajesFinales) {}
+
+    @Override
+    public void onMensajeEstado(String mensaje) {}
+
+    // --- Ciclo de vida ---
+
+    @Override
+    public void resize(int width, int height) {}
+
+    @Override
+    public void pause() {}
+
+    @Override
+    public void resume() {}
 
     @Override
     public void hide() {
+        if (controlador != null) {
+            controlador.removerListener(this);
+        }
     }
 
     @Override
     public void dispose() {
-
+        if (controlador != null) {
+            controlador.removerListener(this);
+        }
+        if (batch != null) {
+            batch.dispose();
+            batch = null;
+        }
+        if (participantesTituloTxt != null) {
+            participantesTituloTxt.dispose();
+            participantesTituloTxt = null;
+        }
+        for (Texto txt : jugadoresTxt) {
+            if (txt != null) {
+                txt.dispose();
+            }
+        }
+        jugadoresTxt.clear();
     }
-
-    public static void crear() {
-        crear = true;
-    }
-
-    public static void empezar() {
-        empezar = true;
-    }
-
-    public static void setJugadores(int indice, String jp) {
-        SalaEspera.jugadores[indice] = jp;
-        jugadoresTxt[indice] = null;
-    }
-
-    public static String[] getJugadores() {
-        return jugadores;
-    }
-
 }

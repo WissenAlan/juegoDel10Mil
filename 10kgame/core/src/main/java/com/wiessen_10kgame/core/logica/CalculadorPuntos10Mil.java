@@ -10,7 +10,8 @@ import com.wiessen_10kgame.core.modelo.Jugador;
 public class CalculadorPuntos10Mil {
 
     public static final int PUNTAJE_META_DEFAULT = 10000;
-    public static final int PUNTAJE_MINIMO_PLANTARSE = 750;
+    public static final int PUNTAJE_MINIMO_PLANTARSE = 50;
+    public static final int PUNTAJE_MINIMO_SALIDA = 750;
 
     /**
      * Calcula el resultado y puntos de una tirada de dados a partir de sus valores (1 a 6).
@@ -34,12 +35,11 @@ public class CalculadorPuntos10Mil {
             }
         }
 
-        // 1. Detectar triple (3 dados iguales con mayor prioridad)
+        // 1. Detectar triple (3 dados iguales)
         boolean tieneTriple = false;
         int valorTriple = -1;
         int puntosTriple = 0;
 
-        // Se busca si hay algún triple (priorizamos el 1 si existiera, o el número más alto)
         for (int v = 1; v <= 6; v++) {
             if (frecuencias[v] >= 3) {
                 tieneTriple = true;
@@ -63,15 +63,15 @@ public class CalculadorPuntos10Mil {
         // 2. Sumar puntos individuales para los dados restantes no usados en el triple
         int puntosIndividuales = 0;
         for (int i = 0; i < n; i++) {
-            if (contables[i]) continue; // Ya pertenece al triple
-
-            int v = valores[i];
-            if (v == 1) {
-                puntosIndividuales += 100;
-                contables[i] = true;
-            } else if (v == 5) {
-                puntosIndividuales += 50;
-                contables[i] = true;
+            if (!contables[i]) {
+                int v = valores[i];
+                if (v == 1) {
+                    puntosIndividuales += 100;
+                    contables[i] = true;
+                } else if (v == 5) {
+                    puntosIndividuales += 50;
+                    contables[i] = true;
+                }
             }
         }
 
@@ -111,14 +111,20 @@ public class CalculadorPuntos10Mil {
     /**
      * Determina si un jugador tiene derecho a plantarse y asegurar los puntos de la ronda.
      * Regla:
-     * - El jugador debe acumular al menos 750 puntos (ya sea en total o en la ronda actual).
+     * - El jugador debe acumular al menos 750 puntos para salir (abrir su puntaje).
+     * - Una vez que tiene 750 puntos o más acumulados, puede plantarse con al menos 50 puntos en la ronda.
      * - La suma no debe exceder la meta (10.000).
      */
     public boolean puedePlantarse(int puntosRonda, int puntosTotales, int puntajeGanar, int puntajeMinimo) {
         if (puntosRonda <= 0) return false;
         int nuevoTotal = puntosTotales + puntosRonda;
         if (nuevoTotal > puntajeGanar) return false;
-        return (puntosTotales >= puntajeMinimo || puntosRonda >= puntajeMinimo);
+        if (nuevoTotal == puntajeGanar) return true;
+
+        if (puntosTotales >= PUNTAJE_MINIMO_SALIDA) {
+            return puntosRonda >= puntajeMinimo;
+        }
+        return puntosRonda >= PUNTAJE_MINIMO_SALIDA;
     }
 
     public boolean puedePlantarse(Jugador jugador, int puntajeGanar, int puntajeMinimo) {

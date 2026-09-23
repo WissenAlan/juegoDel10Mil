@@ -1,4 +1,4 @@
-package utilidades;
+package main.java.utilidades;
 
 /**
  * Representa los dados en el Servidor de forma pura e independiente.
