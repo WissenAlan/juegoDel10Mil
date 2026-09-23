@@ -4,94 +4,152 @@ import com.badlogic.gdx.Gdx;
 import com.badlogic.gdx.Screen;
 import com.badlogic.gdx.graphics.Color;
 import com.badlogic.gdx.graphics.g2d.SpriteBatch;
-
+import com.badlogic.gdx.utils.ScreenUtils;
+import com.wiessen_10kgame.core.Recursos;
+import com.wiessen_10kgame.core.controlador.ControladorJuego;
+import com.wiessen_10kgame.core.modelo.Jugador;
+import com.wiessen_10kgame.red.HiloCliente;
 import com.wiessen_10kgame.ui.componentes.Boton;
 import com.wiessen_10kgame.ui.componentes.Entrada;
+import com.wiessen_10kgame.ui.componentes.Texto;
 import com.wiessen_10kgame.utilidades.ScreenManager;
 import com.wiessen_10kgame.utilidades.Sonidos;
-import com.wiessen_10kgame.ui.componentes.Texto;
 
+import java.util.ArrayList;
+import java.util.List;
+
+/**
+ * Pantalla que muestra el ganador de la partida y la tabla final de puntajes.
+ * Desacoplada del modelo y sin variables estáticas.
+ */
 public class PantallaGanador implements Screen {
 
-	private Texto jugadoresTxt[], ganadorTxt;
-	private int turno, puntosTotales[];
-	private boolean clicBtn = false;
-	private SpriteBatch b = Utiles.batch;
-	private Boton salirbtn;
-	private Entrada e = Utiles.e;
+    private final ControladorJuego controlador;
+    private final HiloCliente hiloCliente;
 
-	public PantallaGanador(Texto[] jugadoresTxt, int turno, int[] puntosTotales) {
-		this.jugadoresTxt = jugadoresTxt.clone();
-		this.turno = turno;
-		this.puntosTotales = puntosTotales.clone();
-	}
+    private SpriteBatch batch;
+    private Texto tituloGanadorTxt;
+    private final List<Texto> puntajesFinalesTxt = new ArrayList<>();
+    private Boton salirBtn;
+    private Entrada entrada;
+    private boolean clicSalir = false;
 
-	@Override
-	public void show() {
-		Gdx.input.setInputProcessor(e);
-		ganadorTxt = new Texto(Utiles.FUENTE_MENU, 32, Color.WHITE, "Ganador es: " + jugadoresTxt[turno].getTexto(),
-				Utiles.COLOR_LETRA);
-		ganadorTxt.setPosicion(Gdx.graphics.getWidth() / 2 - ganadorTxt.getWidth() / 2, Gdx.graphics.getHeight() - 100);
-		for (int i = 0; i < puntosTotales.length; i++) {
-			System.out.println(jugadoresTxt[i].getTexto() + ": " + puntosTotales[i]);
-			jugadoresTxt[i] = new Texto(Utiles.FUENTE_MENU, 28, Color.WHITE,
-					jugadoresTxt[i].getTexto() + ": " + puntosTotales[i], Utiles.COLOR_LETRA);
-			jugadoresTxt[i].setPosicion(100, ganadorTxt.getY() - 100 - (i * 50));
-		}
-		salirbtn = new Boton("Salir", Color.WHITE, Color.BLACK, 30, true);
-		salirbtn.setPosition(Gdx.graphics.getWidth() - salirbtn.getWidth() - 20, 20);
-	}
+    public PantallaGanador(ControladorJuego controlador, HiloCliente hiloCliente) {
+        this.controlador = controlador;
+        this.hiloCliente = hiloCliente;
+    }
 
-	@Override
-	public void render(float delta) {
-		Utiles.limpiarPantalla();
-		verificarSalirBtn();
-		b.begin();
-		dibujarTextos();
-		salirbtn.draw(b);
-		b.end();
-	}
+    public PantallaGanador(ControladorJuego controlador) {
+        this(controlador, null);
+    }
 
-	private void verificarSalirBtn() {
-		if (salirbtn.estaDentro(e)) {
-			if (e.isTouch() && !clicBtn) {
-				salirbtn.setHabilitado(false);
-				clicBtn = true;
-				Sonidos.playAudio(Sonidos.PREVIEWCOMPLETE.getAudio());
-				//MainCliente.hc.terminar();
-				ScreenManager.getInstance().setScreen(new MenuPrincipal());
-			}
-		}
-		if (clicBtn && !e.isTouch()) {
-			clicBtn = false;
-		}
-	}
+    @Override
+    public void show() {
+        batch = new SpriteBatch();
+        entrada = ScreenManager.getInstance().getEntrada();
+        if (entrada != null) {
+            Gdx.input.setInputProcessor(entrada);
+        }
 
-	private void dibujarTextos() {
-		ganadorTxt.dibujar(b);
-		for (int i = 0; i < puntosTotales.length; i++) {
-			jugadoresTxt[i].dibujar(b);
-		}
-	}
+        String nombreGanador = "Desconocido";
+        if (controlador != null) {
+            Jugador g = controlador.getPartida().getGanador();
+            if (g == null) {
+                g = controlador.getPartida().getJugadorActual();
+            }
+            if (g != null) {
+                nombreGanador = g.getNombre();
+            }
+        }
 
-	@Override
-	public void resize(int width, int height) {
-	}
+        tituloGanadorTxt = new Texto(Recursos.FUENTE_MENU, 34, Color.WHITE, "¡Ganador: " + nombreGanador + "!", Recursos.COLOR_LETRA);
+        tituloGanadorTxt.setPosicion((float) Gdx.graphics.getWidth() / 2 - tituloGanadorTxt.getWidth() / 2, Gdx.graphics.getHeight() - 80);
 
-	@Override
-	public void pause() {
-	}
+        puntajesFinalesTxt.clear();
+        if (controlador != null) {
+            List<Jugador> jugadores = controlador.getPartida().getJugadores();
+            for (int i = 0; i < jugadores.size(); i++) {
+                Jugador j = jugadores.get(i);
+                Texto txt = new Texto(Recursos.FUENTE_MENU, 26, Color.WHITE,
+                        (i + 1) + ". " + j.getNombre() + ": " + j.getPuntosTotales() + " pts",
+                        Recursos.COLOR_LETRA);
+                txt.setPosicion(120, tituloGanadorTxt.getY() - 80 - (i * 45));
+                puntajesFinalesTxt.add(txt);
+            }
+        }
 
-	@Override
-	public void resume() {
-	}
+        salirBtn = new Boton("Salir", Color.WHITE, Color.BLACK, 30, true);
+        salirBtn.setPosition(Gdx.graphics.getWidth() - salirBtn.getWidth() - 30, 30);
+    }
 
-	@Override
-	public void hide() {
-	}
+    @Override
+    public void render(float delta) {
+        ScreenUtils.clear(0, 0, 0, 1f);
 
-	@Override
-	public void dispose() {
-	}
+        verificarSalirBtn();
 
+        batch.begin();
+        if (tituloGanadorTxt != null) {
+            tituloGanadorTxt.dibujar(batch);
+        }
+        for (Texto txt : puntajesFinalesTxt) {
+            if (txt != null) {
+                txt.dibujar(batch);
+            }
+        }
+        if (salirBtn != null) {
+            salirBtn.draw(batch);
+        }
+        batch.end();
+    }
+
+    private void verificarSalirBtn() {
+        if (salirBtn == null || entrada == null) return;
+
+        if (salirBtn.estaDentro(entrada)) {
+            if (entrada.isTouch() && !clicSalir) {
+                clicSalir = true;
+                salirBtn.setHabilitado(false);
+                Sonidos.playAudio(Sonidos.PREVIEWCOMPLETE.getAudio());
+
+                if (hiloCliente != null) {
+                    hiloCliente.terminar();
+                }
+                ScreenManager.getInstance().setScreen(new MenuPrincipal());
+            }
+        }
+        if (clicSalir && !entrada.isTouch()) {
+            clicSalir = false;
+        }
+    }
+
+    @Override
+    public void resize(int width, int height) {}
+
+    @Override
+    public void pause() {}
+
+    @Override
+    public void resume() {}
+
+    @Override
+    public void hide() {}
+
+    @Override
+    public void dispose() {
+        if (batch != null) {
+            batch.dispose();
+            batch = null;
+        }
+        if (tituloGanadorTxt != null) {
+            tituloGanadorTxt.dispose();
+            tituloGanadorTxt = null;
+        }
+        for (Texto txt : puntajesFinalesTxt) {
+            if (txt != null) {
+                txt.dispose();
+            }
+        }
+        puntajesFinalesTxt.clear();
+    }
 }

@@ -1,16 +1,15 @@
 package com.wiessen_10kgame;
 
 import com.badlogic.gdx.Game;
-
 import com.badlogic.gdx.Gdx;
+import com.wiessen_10kgame.core.controlador.ControladorJuego;
 import com.wiessen_10kgame.red.HiloCliente;
 import com.wiessen_10kgame.ui.componentes.Entrada;
 import com.wiessen_10kgame.ui.pantallas.MenuPrincipal;
 import com.wiessen_10kgame.utilidades.ScreenManager;
 
 /**
- * {@link com.badlogic.gdx.ApplicationListener} implementation shared by all
- * platforms.
+ * Punto de entrada principal de LibGDX en el cliente.
  */
 public class MainCliente extends Game {
 
@@ -25,12 +24,15 @@ public class MainCliente extends Game {
         ScreenManager.getInstance().setScreen(new MenuPrincipal());
     }
 
-    public void conectarServidor(String nombre) {
-        // Cerramos cualquier conexión previa por seguridad
+    public HiloCliente conectarServidor(String nombre, ControladorJuego controlador) {
         desconectarServidor();
-
-        hc = new HiloCliente("10kgame.duckdns.org",nombre);
+        hc = new HiloCliente("10kgame.duckdns.org", nombre, controlador);
         hc.start();
+        return hc;
+    }
+
+    public void conectarServidor(String nombre) {
+        conectarServidor(nombre, new ControladorJuego(nombre));
     }
 
     /**
@@ -38,7 +40,7 @@ public class MainCliente extends Game {
      */
     public void desconectarServidor() {
         if (hc != null) {
-            hc.terminar(); // HiloCliente debe encargarse de cerrar su propio Socket
+            hc.terminar();
             hc = null;
         }
     }

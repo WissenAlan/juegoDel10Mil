@@ -29,6 +29,15 @@ public class ScreenManager {
 
     public void setScreen(Screen newScreen) {
         validarInicializacion();
+
+        // 1. Limpiar recursos de las pantallas almacenadas en el historial
+        while (!historial.isEmpty()) {
+            Screen s = historial.pop();
+            if (s != null) {
+                s.dispose();
+            }
+        }
+
         Screen currentS = game.getScreen();
         if (currentS != null) currentS.dispose();
 

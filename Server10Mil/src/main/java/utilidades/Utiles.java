@@ -1,4 +1,4 @@
-package utilidades;
+package main.java.utilidades;
 
 import java.util.Random;
 

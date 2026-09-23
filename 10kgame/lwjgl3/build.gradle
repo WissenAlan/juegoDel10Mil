@@ -18,6 +18,10 @@ import io.github.fourlastor.construo.Target
 
 sourceSets.main.resources.srcDirs += [rootProject.file('assets').path]
 
+tasks.named('processResources') {
+  dependsOn ((findProject(':core') ?: project(':10kgame:core')).tasks.named('generateAssetList'))
+}
+
 application {
   mainClass = 'com.wiessen_10kgame.lwjgl3.Lwjgl3Launcher'
 }
@@ -33,7 +37,7 @@ dependencies {
   implementation "com.badlogicgames.gdx:gdx-backend-lwjgl3:$gdxVersion"
   implementation "com.badlogicgames.gdx:gdx-freetype-platform:$gdxVersion:natives-desktop"
   implementation "com.badlogicgames.gdx:gdx-platform:$gdxVersion:natives-desktop"
-  implementation project(':10kgame:core')
+  implementation (findProject(':core') ?: project(':10kgame:core'))
 
   if (project.hasProperty('enableGraalNative') && enableGraalNative == 'true') {
     implementation "io.github.berstanio:gdx-svmhelper-backend-lwjgl3:$graalHelperVersion"
