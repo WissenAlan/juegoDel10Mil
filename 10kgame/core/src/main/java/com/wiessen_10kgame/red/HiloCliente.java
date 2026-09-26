@@ -20,6 +20,7 @@ public class HiloCliente extends Thread {
     private DatagramSocket conexion;
     private InetAddress ipServer;
     private boolean fin = false;
+    private volatile boolean conectado = false;
     private int nroJugador;
     private final String nombreJugador;
     private PartidaListener listener;
@@ -67,12 +68,32 @@ public class HiloCliente extends Thread {
         return nroJugador;
     }
 
+    public boolean isConectado() {
+        return conectado;
+    }
+
     // -----------------------------------------------------------------------
     // Ciclo de vida del hilo
     // -----------------------------------------------------------------------
 
     @Override
     public void run() {
+        // Hilo auxiliar para reintentar la conexión inicial en caso de pérdida de paquetes UDP
+        Thread reintentoThread = new Thread(() -> {
+            int reintentos = 0;
+            while (!conectado && !fin && reintentos < 5) {
+                try {
+                    Thread.sleep(800);
+                } catch (InterruptedException ignored) {}
+                if (!conectado && !fin) {
+                    enviarMensaje("Conexion%" + nombreJugador);
+                    reintentos++;
+                }
+            }
+        }, "ReintentoConexion");
+        reintentoThread.setDaemon(true);
+        reintentoThread.start();
+
         byte[] data = new byte[1024];
         while (!fin) {
             DatagramPacket dp = new DatagramPacket(data, data.length);
@@ -145,6 +166,7 @@ public class HiloCliente extends Thread {
                     break;
 
                 case "OK":
+                    conectado = true;
                     InetAddress srv = remitente;
                     if (srv != null) ipServer = srv;
                     nroJugador = Integer.parseInt(partes[1]);

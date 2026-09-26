@@ -21,7 +21,6 @@ public class Boton {
         texturas[0] = new Sprite(new Texture("sprites/boton0.png"));
         texturas[1] = new Sprite(new Texture("sprites/boton1.png"));
         pos = new Vector2();
-
     }
 
     public void setPosition(float x, float y) {
@@ -70,9 +69,9 @@ public class Boton {
 
     public void setHabilitado(boolean habilitado) {
         this.habilitado = habilitado;
-        if (habilitado && texto.getColor() != Color.valueOf("ffffff")) {
-            texto.setColor(Color.valueOf("ffffff"));
-        } else if (!habilitado && texto.getColor() != Color.valueOf("4b4b4b")) {
+        if (habilitado && !Color.WHITE.equals(texto.getColor())) {
+            texto.setColor(Color.WHITE);
+        } else if (!habilitado && !Color.valueOf("4b4b4b").equals(texto.getColor())) {
             texto.setColor(Color.valueOf("4b4b4b"));
         }
     }
@@ -89,4 +88,17 @@ public class Boton {
         return (entradas.getMouseX() > posicion.x && entradas.getMouseX() < (posicion.x + width) && (entradas.getMouseY() > posicion.y && entradas.getMouseY() < (posicion.y + height)));
     }
 
+    public void dispose() {
+        if (texturas != null) {
+            for (Sprite s : texturas) {
+                if (s != null && s.getTexture() != null) {
+                    s.getTexture().dispose();
+                }
+            }
+        }
+        if (texto != null) {
+            texto.dispose();
+            texto = null;
+        }
+    }
 }

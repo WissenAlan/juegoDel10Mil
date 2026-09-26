@@ -41,7 +41,9 @@ public class ControladorJuego implements PartidaListener {
         this.nombreJugadorLocal = nombreJugadorLocal != null ? nombreJugadorLocal.trim() : "";
         this.admin = false;
         this.partida = new Partida();
-        this.partida.agregarJugador(new Jugador(nombreJugadorLocal));
+        Jugador local = new Jugador(this.nombreJugadorLocal);
+        this.partida.agregarJugador(local);
+        local.setAdmin(false); // No asumir admin hasta que el servidor lo confirme con imAdmin
         this.calculador = new CalculadorPuntos10Mil();
     }
 
@@ -67,6 +69,7 @@ public class ControladorJuego implements PartidaListener {
         if (local != null) {
             local.setAdmin(admin);
         }
+        notificarListaJugadoresActualizada();
     }
 
     public boolean isAdmin() {
@@ -86,7 +89,7 @@ public class ControladorJuego implements PartidaListener {
     }
 
     /**
-     * Sincroniza la lista de jugadores a partir de un arreglo de nombres recibidos.
+     * Sincroniza la lista de jugadores a partir de un arreglo de nombres recibidos del servidor.
      */
     public void actualizarListaNombres(List<String> nombres) {
         if (nombres == null) return;
@@ -96,11 +99,7 @@ public class ControladorJuego implements PartidaListener {
             String nom = nombres.get(i);
             if (nom != null && !nom.trim().isEmpty()) {
                 Jugador j = new Jugador(nom.trim());
-                if (i == 0 && admin) {
-                    j.setAdmin(true);
-                } else if (nom.trim().equalsIgnoreCase(nombreJugadorLocal)) {
-                    j.setAdmin(admin);
-                }
+                j.setAdmin(i == 0); // El jugador 0 del servidor siempre es el creador/admin de la sala
                 jugadoresActuales.add(j);
             }
         }
@@ -109,8 +108,10 @@ public class ControladorJuego implements PartidaListener {
         while (partida.getCantidadJugadores() > 0) {
             partida.removerJugador(0);
         }
-        for (Jugador j : jugadoresActuales) {
+        for (int i = 0; i < jugadoresActuales.size(); i++) {
+            Jugador j = jugadoresActuales.get(i);
             partida.agregarJugador(j);
+            j.setAdmin(i == 0);
         }
 
         notificarListaJugadoresActualizada();
@@ -332,8 +333,7 @@ public class ControladorJuego implements PartidaListener {
 
     @Override
     public void onConexionOk(InetAddress servidor, int nroJugador) {
-        // El nroJugador puede necesitarse en el futuro; por ahora se registra aquí.
-        // El ipServer se actualiza dentro de HiloCliente antes de llamar a este método.
+        // Confirmación recibida del servidor
     }
 
     @Override
@@ -386,4 +386,3 @@ public class ControladorJuego implements PartidaListener {
         setUltimoDado(indice);
     }
 }
-

@@ -36,9 +36,6 @@ public class HiloServidor extends Thread {
     public HiloServidor() {
         try {
             // Escuchar en TODAS las interfaces locales (0.0.0.0).
-            // El hostname DNS externo (10kgame.duckdns.org) apunta a este servidor
-            // desde afuera, pero NO es una IP asignada a la interfaz de red local,
-            // por lo que usarlo en el bind lanza SocketException y deja conexion = null.
             conexion = new DatagramSocket(5302);
             LOGGER.info("Servidor escuchando en el puerto 5302");
         } catch (SocketException e1) {
@@ -101,13 +98,23 @@ public class HiloServidor extends Thread {
     }
 
     private void recibirMensaje(DatagramPacket dp) {
-        String msg = (new String(dp.getData())).trim();
+        String msg = (new String(dp.getData(), 0, dp.getLength())).trim();
         String[] msgConcat = msg.split("%");
         int nroCliente = getNroCliente(dp);
 
+        // Si el cliente ya está registrado y repite "Conexion", re-enviarle confirmación y lista
+        if (msgConcat[0].equals("Conexion") && nroCliente >= 0 && nroCliente < cantClientes) {
+            enviarMensaje("OK%" + nroCliente, clientes[nroCliente].ip(), clientes[nroCliente].puerto());
+            if (nroCliente == 0) {
+                enviarMensaje("imAdmin%", clientes[0].ip(), clientes[0].puerto());
+            }
+            if (nombresConcat != null) {
+                enviarMensaje("nombresAntes1" + nombresConcat, clientes[nroCliente].ip(), clientes[nroCliente].puerto());
+            }
+            return;
+        }
+
         // --- Registro de nuevo cliente ---
-        // El cliente envía "Conexion%<nombre>". Usamos msgConcat[0] para comparar
-        // solo el comando, y msgConcat[1] para obtener el nombre del jugador.
         if (cantClientes < 6 && msgConcat[0].equals("Conexion") && nroCliente == cantClientes) {
             String nombreCliente = (msgConcat.length > 1) ? msgConcat[1] : "Jugador" + (cantClientes + 1);
             clientes[cantClientes] = new DireccionRed(dp.getAddress(), dp.getPort());
@@ -142,26 +149,28 @@ public class HiloServidor extends Thread {
         } else if (msgConcat[0].equals("TurnoDeQuien?")) {
             enviarMensajeATodos("CantidaddeClientes%" + cantClientes + "%Turnode%" + turno);
         } else if (msg.equalsIgnoreCase("powerOff")) {
-            enviarMensaje("Adios.", clientes[nroCliente].ip(), clientes[nroCliente].puerto());
-            clientes[nroCliente] = null;
-            nombres[nroCliente] = null;
-            cantClientes--;
-            ordenarClientes(nroCliente);
-            if (!empieza) {
-                setNombresConcat();
-                enviarMensajeATodos("nombresAntes2%" + nroCliente + nombresConcat);
-                hacerAdminCliente();
-            } else {
-                setNombresConcat();
-                enviarMensajeATodos("nombresDespues%" + nroCliente + nombresConcat);
-                if (cantClientes == 1) {
-                    enviarMensajeATodos("HayGanadorDeJuego");
-                } else if (turno == nroCliente && nroCliente == cantClientes + 1) {
-                    cambiarTurno();
+            if (nroCliente >= 0 && nroCliente < cantClientes) {
+                enviarMensaje("Adios.", clientes[nroCliente].ip(), clientes[nroCliente].puerto());
+                clientes[nroCliente] = null;
+                nombres[nroCliente] = null;
+                cantClientes--;
+                ordenarClientes(nroCliente);
+                if (!empieza) {
+                    setNombresConcat();
+                    enviarMensajeATodos("nombresAntes2%" + nroCliente + (nombresConcat != null ? nombresConcat : ""));
+                    hacerAdminCliente();
                 } else {
-                    resetearVariables();
-                    enviarMensajeATodos("ResetearVariables");
-                    enviarMensajeATodos("CantidaddeClientes%" + cantClientes + "%Turnode%" + turno);
+                    setNombresConcat();
+                    enviarMensajeATodos("nombresDespues%" + nroCliente + (nombresConcat != null ? nombresConcat : ""));
+                    if (cantClientes == 1) {
+                        enviarMensajeATodos("HayGanadorDeJuego");
+                    } else if (turno == nroCliente && nroCliente == cantClientes + 1) {
+                        cambiarTurno();
+                    } else {
+                        resetearVariables();
+                        enviarMensajeATodos("ResetearVariables");
+                        enviarMensajeATodos("CantidaddeClientes%" + cantClientes + "%Turnode%" + turno);
+                    }
                 }
             }
         }
@@ -195,7 +204,7 @@ public class HiloServidor extends Thread {
     }
 
     private void hacerAdminCliente() {
-        if (cantClientes == 1) {
+        if (cantClientes == 1 && clientes[0] != null) {
             enviarMensaje("imAdmin%", clientes[0].ip(), clientes[0].puerto());
         }
     }

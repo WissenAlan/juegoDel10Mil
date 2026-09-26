@@ -16,7 +16,11 @@ import com.wiessen_10kgame.ui.componentes.Texto;
 import com.wiessen_10kgame.utilidades.ScreenManager;
 import com.wiessen_10kgame.utilidades.Sonidos;
 
+import java.net.Inet4Address;
+import java.net.InetAddress;
+import java.net.NetworkInterface;
 import java.util.ArrayList;
+import java.util.Enumeration;
 import java.util.List;
 
 /**
@@ -31,6 +35,7 @@ public class SalaEspera implements Screen, ControladorJuegoListener {
 
     private SpriteBatch batch;
     private Texto participantesTituloTxt;
+    private Texto ipInfoTxt;
     private final List<Texto> jugadoresTxt = new ArrayList<>();
     private Boton empezarBtn;
     private Entrada entrada;
@@ -56,6 +61,11 @@ public class SalaEspera implements Screen, ControladorJuegoListener {
 
         participantesTituloTxt = new Texto(Recursos.FUENTE_MENU, 32, Color.WHITE, "Participantes:", Recursos.COLOR_LETRA);
         participantesTituloTxt.setPosicion(100, Gdx.graphics.getHeight() - 50);
+
+        String ipLocal = obtenerIpLocal();
+        String infoIp = "Host IP: " + ipLocal + " (o 127.0.0.1) | Puerto: 5302";
+        ipInfoTxt = new Texto(Recursos.FUENTE_MENU, 18, Color.YELLOW, infoIp, Recursos.COLOR_LETRA);
+        ipInfoTxt.setPosicion(100, 30);
 
         if (controlador != null) {
             controlador.agregarListener(this);
@@ -85,6 +95,10 @@ public class SalaEspera implements Screen, ControladorJuegoListener {
             if (txt != null) {
                 txt.dibujar(batch);
             }
+        }
+
+        if (ipInfoTxt != null) {
+            ipInfoTxt.dibujar(batch);
         }
 
         if (controlador != null && controlador.isAdmin()) {
@@ -117,15 +131,39 @@ public class SalaEspera implements Screen, ControladorJuegoListener {
     }
 
     private synchronized void reconstruirTextosJugadores(List<Jugador> jugadores) {
+        for (Texto t : jugadoresTxt) {
+            if (t != null) t.dispose();
+        }
         jugadoresTxt.clear();
         if (jugadores == null) return;
 
         for (int i = 0; i < jugadores.size(); i++) {
             Jugador j = jugadores.get(i);
-            String etiqueta = (i + 1) + ". " + j.getNombre() + (j.isAdmin() ? " (Admin)" : "");
+            boolean esAdmin = j.isAdmin();
+            String etiqueta = (i + 1) + ". " + j.getNombre() + (esAdmin ? " (Admin)" : "");
             Texto txt = new Texto(Recursos.FUENTE_MENU, 28, Color.WHITE, etiqueta, Recursos.COLOR_LETRA);
             txt.setPosicion(100, participantesTituloTxt.getY() - (60 * (i + 1)));
             jugadoresTxt.add(txt);
+        }
+    }
+
+    private String obtenerIpLocal() {
+        try {
+            Enumeration<NetworkInterface> interfaces = NetworkInterface.getNetworkInterfaces();
+            while (interfaces.hasMoreElements()) {
+                NetworkInterface iface = interfaces.nextElement();
+                if (iface.isLoopback() || !iface.isUp()) continue;
+                Enumeration<InetAddress> addresses = iface.getInetAddresses();
+                while (addresses.hasMoreElements()) {
+                    InetAddress addr = addresses.nextElement();
+                    if (addr instanceof Inet4Address && !addr.isLoopbackAddress()) {
+                        return addr.getHostAddress();
+                    }
+                }
+            }
+            return InetAddress.getLocalHost().getHostAddress();
+        } catch (Exception e) {
+            return "127.0.0.1";
         }
     }
 
@@ -192,6 +230,10 @@ public class SalaEspera implements Screen, ControladorJuegoListener {
         if (participantesTituloTxt != null) {
             participantesTituloTxt.dispose();
             participantesTituloTxt = null;
+        }
+        if (ipInfoTxt != null) {
+            ipInfoTxt.dispose();
+            ipInfoTxt = null;
         }
         for (Texto txt : jugadoresTxt) {
             if (txt != null) {

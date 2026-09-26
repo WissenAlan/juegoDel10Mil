@@ -45,6 +45,23 @@ class ControladorJuegoTest {
     }
 
     @Test
+    @DisplayName("Cliente no admin (ej. Tom) ve al creador (Alan) como Admin y a sí mismo no admin")
+    void testClienteNoAdminSincronizaLista() {
+        ControladorJuego controladorTom = new ControladorJuego("Tom");
+        assertFalse(controladorTom.isAdmin());
+
+        controladorTom.actualizarListaNombres(Arrays.asList("Alan", "Tom"));
+
+        List<Jugador> jugadores = controladorTom.getJugadores();
+        assertEquals(2, jugadores.size());
+        assertEquals("Alan", jugadores.get(0).getNombre());
+        assertTrue(jugadores.get(0).isAdmin(), "Alan debe ser Admin en la pantalla de Tom");
+        assertEquals("Tom", jugadores.get(1).getNombre());
+        assertFalse(jugadores.get(1).isAdmin(), "Tom no debe ser Admin");
+        assertFalse(controladorTom.isAdmin(), "El controlador local de Tom no debe tener permisos de admin");
+    }
+
+    @Test
     @DisplayName("Detección de mi turno")
     void testEsMiTurno() {
         controlador.actualizarListaNombres(Arrays.asList("Alan", "Carlos"));
